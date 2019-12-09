@@ -6,9 +6,9 @@ import "./index.css";
 TODO: 1.[X] Display the location for each move in the format (col, row) in the move history list.
       2.[X] Bold the currently selected item in the move list.
       3.[X] Rewrite Board to use two loops to make the squares instead of hardcoding them.
-      4.[-] Add a toggle button that lets you sort the moves in either ascending or descending order.
+      4.[X] Add a toggle button that lets you sort the moves in either ascending or descending order.
       5.[X] When someone wins, highlight the three squares that caused the win.
-      6.[-] When no one wins, display a message about the result being a draw.
+      6.[X] When no one wins, display a message about the result being a draw.
 */
 
 function Square(props) {
@@ -54,6 +54,8 @@ class Board extends React.Component {
   }
 }
 
+//TODO: Need to highlight a button at a time!
+
 function MoveButton(props) {
   const [clicked, setClicked] = useState(false);
   if(props.clicked && clicked)
@@ -85,6 +87,7 @@ class Game extends React.Component {
       stepNumber: 0,
       xIsNext: true,
       clicked: false,
+      sortOrder: "ascending",
     };
   }
 
@@ -115,25 +118,39 @@ class Game extends React.Component {
   jumpTo(step) {
     this.setState({
       stepNumber: step,
-      xIsNext: step % 2 === 0
+      xIsNext: step % 2 === 0,
     });
+  }
+  sort(order) {
+    this.setState({
+      clicked: true,
+      sortOrder: order,
+    })
   }
   
   render() {
     const history = this.state.history;
     const current = history[this.state.stepNumber];
     const { winner, winningRow } = calculateWinner(current.squares);
+    const tie = calculateTie(current.squares);
 
-    const moves = history.map((step, move) => {
+    let moves = history.map((step, move) => {
       const desc = move
         ? `Go to move #${move}. In the column: ${step.column} and row: ${step.row}`
         : "Go to game start";
       return (
         <li key={move}>
-          <MoveButton onClick={() => this.jumpTo(move)} desc={desc} clicked={this.state.clicked} />
+          <MoveButton 
+            onClick={() => this.jumpTo(move)}
+            desc={desc}
+            clicked={this.state.clicked} 
+          />
         </li>
       );
     });
+    if(this.state.sortOrder === "descending") {
+      moves = moves.reverse();
+    }
 
     if(this.state.clicked) {
       this.setState({
@@ -143,7 +160,11 @@ class Game extends React.Component {
     let status;
     if (winner) {
       status = `Winner ${winner}`;
-    } else {
+    } 
+    else if(tie) {
+      status = 'The match is drawn'
+    }
+    else {
       status = `Next Player ${this.state.xIsNext ? "X" : "O"}`;
     }
     return (
@@ -158,6 +179,12 @@ class Game extends React.Component {
         <div className="game-info">
           <div>{status}</div>
           <ol>{moves}</ol>
+          <button className="sort" onClick={() => this.sort("ascending")}>
+            Sort by Ascending
+          </button>
+          <button className="sort" onClick={() => this.sort("descending")}>
+            Sort by Descending
+          </button>
         </div>
       </div>
     );
@@ -188,6 +215,15 @@ function calculateWinner(squares) {
     winner: null,
     winningRow: [],
   });
+}
+
+function calculateTie(squares) {
+  let tie = true;
+  squares.forEach(element => {
+    if(element === null)
+      tie = false;
+  });
+  return tie;
 }
 
 // ========================================

@@ -52,6 +52,11 @@ ul {
 .game-info {
     margin-left: 20px;
 }
+
+.game-info .sort {
+    margin-left: 30px;
+}
+
 .game-info .move {
     font-weight: normal;    
 }
