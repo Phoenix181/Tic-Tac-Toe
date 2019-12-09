@@ -2,15 +2,6 @@ import React, {useState} from "react";
 import ReactDOM from "react-dom";
 import "./index.css";
 
-/*
-TODO: 1.[X] Display the location for each move in the format (col, row) in the move history list.
-      2.[X] Bold the currently selected item in the move list.
-      3.[X] Rewrite Board to use two loops to make the squares instead of hardcoding them.
-      4.[X] Add a toggle button that lets you sort the moves in either ascending or descending order.
-      5.[X] When someone wins, highlight the three squares that caused the win.
-      6.[X] When no one wins, display a message about the result being a draw.
-*/
-
 function Square(props) {
   return(
     <button className = {props.c} onClick = {props.onClick}>
@@ -54,19 +45,14 @@ class Board extends React.Component {
   }
 }
 
-//TODO: Need to highlight a button at a time!
 
 function MoveButton(props) {
-  const [clicked, setClicked] = useState(false);
-  if(props.clicked && clicked)
-    setClicked(!clicked);
   return (
     <button
       onClick={() => {
         props.onClick();
-        setClicked(!clicked);
       }}
-      className={clicked ? "moveClicked" : "move"}
+      className={props.moveClicked ? "moveClicked" : "move"}
     >
       {props.desc}
     </button>
@@ -88,6 +74,7 @@ class Game extends React.Component {
       xIsNext: true,
       clicked: false,
       sortOrder: "ascending",
+      moveClicked: Array(10).fill(false),
     };
   }
 
@@ -112,6 +99,7 @@ class Game extends React.Component {
       stepNumber: history.length,
       xIsNext: !this.state.xIsNext,
       clicked: true,
+      moveClicked: Array(10).fill(false),
     });
   }
 
@@ -141,9 +129,16 @@ class Game extends React.Component {
       return (
         <li key={move}>
           <MoveButton 
-            onClick={() => this.jumpTo(move)}
+            onClick={() => {
+              this.jumpTo(move);
+              let moveClicked = Array(10).fill(false);
+              moveClicked[move] = true;
+              this.setState({
+                moveClicked: moveClicked,
+              })
+            }}
             desc={desc}
-            clicked={this.state.clicked} 
+            moveClicked = {this.state.moveClicked[move]} 
           />
         </li>
       );
@@ -155,8 +150,10 @@ class Game extends React.Component {
     if(this.state.clicked) {
       this.setState({
         clicked: false,
+        moveClicked: Array(10).fill(false),
       });
     }
+
     let status;
     if (winner) {
       status = `Winner ${winner}`;
